@@ -1,13 +1,455 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mitt Norge</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ba0c2f">
+<title>Mitt Norge</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:#f4f6f8;
+  color:#17202a;
+}
+
+header{
+  background:linear-gradient(135deg,#ba0c2f,#8b0924);
+  color:white;
+  padding:28px 18px 32px;
+  text-align:center;
+}
+
+.logo{
+  font-size:36px;
+  font-weight:800;
+  margin-bottom:5px;
+}
+
+.subtitle{
+  font-size:17px;
+  opacity:.95;
+}
+
+.container{
+  max-width:850px;
+  margin:auto;
+  padding:16px;
+}
+
+.card{
+  background:white;
+  border-radius:16px;
+  padding:18px;
+  margin-bottom:15px;
+  box-shadow:0 3px 14px rgba(0,0,0,.08);
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  text-align:center;
+}
+
+.stat-number{
+  font-size:32px;
+  font-weight:800;
+  color:#ba0c2f;
+}
+
+.stat-label{
+  font-size:13px;
+  color:#667085;
+  margin-top:3px;
+}
+
+.progress{
+  height:14px;
+  background:#e4e7ec;
+  border-radius:20px;
+  overflow:hidden;
+  margin-top:15px;
+}
+
+.progress-bar{
+  height:100%;
+  width:0;
+  background:#ba0c2f;
+  transition:.3s;
+}
+
+#search{
+  width:100%;
+  padding:14px 16px;
+  border:1px solid #d0d5dd;
+  border-radius:12px;
+  font-size:16px;
+  outline:none;
+}
+
+#search:focus{
+  border-color:#ba0c2f;
+}
+
+.county{
+  background:white;
+  border-radius:14px;
+  margin-bottom:12px;
+  overflow:hidden;
+  box-shadow:0 2px 9px rgba(0,0,0,.06);
+}
+
+.county-header{
+  padding:16px;
+  font-size:18px;
+  font-weight:700;
+  cursor:pointer;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.county-header span{
+  font-size:14px;
+  color:#667085;
+  font-weight:500;
+}
+
+.municipalities{
+  display:none;
+  border-top:1px solid #eee;
+}
+
+.municipality{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:13px 16px;
+  border-bottom:1px solid #f1f1f1;
+  cursor:pointer;
+}
+
+.municipality:last-child{
+  border-bottom:none;
+}
+
+.municipality:hover{
+  background:#fafafa;
+}
+
+.municipality input{
+  width:21px;
+  height:21px;
+  accent-color:#ba0c2f;
+}
+
+.reset{
+  width:100%;
+  border:0;
+  background:#eef0f3;
+  padding:13px;
+  border-radius:10px;
+  font-size:15px;
+  cursor:pointer;
+}
+
+footer{
+  text-align:center;
+  color:#667085;
+  font-size:13px;
+  padding:25px 10px 40px;
+}
+
+@media(max-width:500px){
+  .logo{font-size:32px}
+  header{padding-top:23px}
+}
+</style>
 </head>
+
 <body>
-  <h1>🇳🇴 Mitt Norge</h1>
-  <h2>Hvor mye av Norge har du opplevd?</h2>
-  <p>Appen fungerer! 🎉</p>
+
+<header>
+  <div class="logo">🇳🇴 Mitt Norge</div>
+  <div class="subtitle">Hvor mye av Norge har du opplevd?</div>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <div class="stats">
+      <div>
+        <div class="stat-number" id="visited">0</div>
+        <div class="stat-label">kommuner besøkt</div>
+      </div>
+      <div>
+        <div class="stat-number" id="percent">0 %</div>
+        <div class="stat-label">av Norge</div>
+      </div>
+    </div>
+
+    <div class="progress">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <input id="search" type="search"
+      placeholder="🔎 Søk etter kommune eller fylke...">
+  </div>
+
+  <div id="list"></div>
+
+  <div class="card">
+    <button class="reset" onclick="resetAll()">
+      Nullstill alle besøk
+    </button>
+  </div>
+
+</div>
+
+<footer>
+  Mitt Norge 🇳🇴<br>
+  Kryss av kommunene du har besøkt.
+</footer>
+
+<script>
+
+const data = {
+"Østfold":[
+"Halden","Moss","Sarpsborg","Fredrikstad","Hvaler","Råde",
+"Våler","Skiptvet","Indre Østfold","Rakkestad","Marker","Aremark"
+],
+
+"Akershus":[
+"Bærum","Asker","Lillestrøm","Nordre Follo","Ullensaker",
+"Nesodden","Frogn","Vestby","Ås","Enebakk","Lørenskog",
+"Rælingen","Nittedal","Gjerdrum","Nes","Eidsvoll",
+"Nannestad","Hurdal","Aurskog-Høland"
+],
+
+"Oslo":[
+"Oslo"
+],
+
+"Innlandet":[
+"Kongsvinger","Hamar","Lillehammer","Gjøvik","Ringsaker",
+"Løten","Stange","Nord-Odal","Sør-Odal","Eidskog",
+"Grue","Åsnes","Våler","Elverum","Trysil","Åmot",
+"Stor-Elvdal","Rendalen","Engerdal","Tolga","Tynset",
+"Alvdal","Folldal","Os","Dovre","Lesja","Skjåk",
+"Lom","Vågå","Nord-Fron","Sel","Sør-Fron","Ringebu",
+"Øyer","Gausdal","Østre Toten","Vestre Toten",
+"Gran","Søndre Land","Nordre Land","Sør-Aurdal",
+"Etnedal","Nord-Aurdal","Vestre Slidre","Øystre Slidre",
+"Vang"
+],
+
+"Buskerud":[
+"Drammen","Kongsberg","Ringerike","Hole","Lier",
+"Øvre Eiker","Modum","Krødsherad","Flå","Nesbyen",
+"Gol","Hemsedal","Ål","Hol","Sigdal","Flesberg",
+"Rollag","Nore og Uvdal"
+],
+
+"Vestfold":[
+"Horten","Holmestrand","Tønsberg","Sandefjord",
+"Larvik","Færder"
+],
+
+"Telemark":[
+"Porsgrunn","Skien","Notodden","Siljan","Bamble",
+"Kragerø","Drangedal","Nome","Midt-Telemark",
+"Seljord","Hjartdal","Tinn","Kviteseid","Nissedal",
+"Fyresdal","Tokke","Vinje"
+],
+
+"Agder":[
+"Risør","Grimstad","Arendal","Kristiansand","Lindesnes",
+"Farsund","Flekkefjord","Gjerstad","Vegårshei","Tvedestrand",
+"Froland","Lillesand","Birkenes","Åmli","Iveland",
+"Evje og Hornnes","Bygland","Valle","Bykle","Vennesla",
+"Åseral","Lyngdal","Hægebostad","Kvinesdal","Sirdal"
+],
+
+"Rogaland":[
+"Eigersund","Stavanger","Haugesund","Sandnes","Sokndal",
+"Lund","Bjerkreim","Hå","Klepp","Time","Gjesdal",
+"Sola","Randaberg","Strand","Hjelmeland","Suldal",
+"Sauda","Kvitsøy","Bokn","Tysvær","Karmøy",
+"Utsira","Vindafjord"
+],
+
+"Vestland":[
+"Bergen","Kinn","Etne","Sveio","Bømlo","Stord",
+"Fitjar","Tysnes","Kvinnherad","Ullensvang","Eidfjord",
+"Ulvik","Voss","Kvam","Samnanger","Bjørnafjorden",
+"Austevoll","Øygarden","Askøy","Vaksdal","Modalen",
+"Osterøy","Alver","Austrheim","Fedje","Masfjorden",
+"Gulen","Solund","Hyllestad","Høyanger","Vik",
+"Sogndal","Aurland","Lærdal","Årdal","Luster",
+"Askvoll","Fjaler","Sunnfjord","Bremanger","Stad",
+"Gloppen","Stryn"
+],
+
+"Møre og Romsdal":[
+"Kristiansund","Molde","Ålesund","Vanylven","Sande",
+"Herøy","Ulstein","Hareid","Ørsta","Stranda",
+"Sykkylven","Sula","Giske","Vestnes","Rauma",
+"Aukra","Averøy","Gjemnes","Tingvoll","Sunndal",
+"Surnadal","Smøla","Aure","Hustadvika","Haram"
+],
+
+"Trøndelag":[
+"Trondheim","Steinkjer","Namsos","Frøya","Osen",
+"Oppdal","Rennebu","Røros","Holtålen","Midtre Gauldal",
+"Melhus","Skaun","Malvik","Selbu","Tydal","Meråker",
+"Stjørdal","Frosta","Levanger","Verdal","Snåsa",
+"Lierne","Røyrvik","Namsskogan","Grong","Høylandet",
+"Overhalla","Flatanger","Leka","Inderøy","Indre Fosen",
+"Heim","Hitra","Ørland","Åfjord","Orkland",
+"Nærøysund","Rindal"
+],
+
+"Nordland":[
+"Bodø","Narvik","Bindal","Sømna","Brønnøy","Vega",
+"Vevelstad","Herøy","Alstahaug","Leirfjord","Vefsn",
+"Grane","Hattfjelldal","Dønna","Nesna","Hemnes",
+"Rana","Lurøy","Træna","Rødøy","Meløy",
+"Gildeskål","Beiarn","Saltdal","Fauske","Sørfold",
+"Steigen","Lødingen","Evenes","Røst","Værøy",
+"Flakstad","Vestvågøy","Vågan","Hadsel","Bø",
+"Øksnes","Sortland","Andøy","Moskenes","Hamarøy"
+],
+
+"Troms":[
+"Tromsø","Harstad","Kvæfjord","Tjeldsund","Ibestad",
+"Gratangen","Lavangen","Bardu","Salangen","Målselv",
+"Sørreisa","Dyrøy","Senja","Balsfjord","Karlsøy",
+"Lyngen","Storfjord","Kåfjord","Skjervøy","Nordreisa",
+"Kvænangen"
+],
+
+"Finnmark":[
+"Alta","Hammerfest","Sør-Varanger","Vadsø","Karasjok",
+"Kautokeino","Loppa","Hasvik","Måsøy","Nordkapp",
+"Porsanger","Lebesby","Gamvik","Tana","Berlevåg",
+"Båtsfjord","Vardø","Nesseby"
+]
+};
+
+const list = document.getElementById("list");
+const search = document.getElementById("search");
+
+let saved = JSON.parse(localStorage.getItem("mittNorgeVisited") || "{}");
+
+function totalMunicipalities(){
+  return Object.values(data).reduce((sum,arr)=>sum+arr.length,0);
+}
+
+function makeKey(county,name){
+  return county + "|" + name;
+}
+
+function updateStats(){
+  let visited = Object.values(saved).filter(Boolean).length;
+  let total = totalMunicipalities();
+  let pct = total ? (visited/total*100) : 0;
+
+  document.getElementById("visited").textContent = visited;
+  document.getElementById("percent").textContent =
+    pct.toLocaleString("no-NO",{maximumFractionDigits:1}) + " %";
+  document.getElementById("progressBar").style.width = pct + "%";
+}
+
+function render(filter=""){
+  list.innerHTML="";
+  const q = filter.toLowerCase().trim();
+
+  Object.entries(data).forEach(([county,municipalities])=>{
+
+    const matches = municipalities.filter(name =>
+      name.toLowerCase().includes(q) ||
+      county.toLowerCase().includes(q)
+    );
+
+    if(q && matches.length===0) return;
+
+    const box=document.createElement("div");
+    box.className="county";
+
+    const header=document.createElement("div");
+    header.className="county-header";
+
+    const visitedCount=municipalities.filter(name =>
+      saved[makeKey(county,name)]
+    ).length;
+
+    header.innerHTML =
+      `<div>${county}</div>
+       <span>${visitedCount}/${municipalities.length} ▾</span>`;
+
+    const items=document.createElement("div");
+    items.className="municipalities";
+    if(q) items.style.display="block";
+
+    (q ? matches : municipalities).forEach(name=>{
+      const row=document.createElement("label");
+      row.className="municipality";
+
+      const key=makeKey(county,name);
+
+      const checkbox=document.createElement("input");
+      checkbox.type="checkbox";
+      checkbox.checked=!!saved[key];
+
+      checkbox.addEventListener("change",()=>{
+        saved[key]=checkbox.checked;
+        localStorage.setItem("mittNorgeVisited",JSON.stringify(saved));
+        updateStats();
+        render(search.value);
+      });
+
+      const text=document.createElement("div");
+      text.textContent=name;
+
+      row.appendChild(checkbox);
+      row.appendChild(text);
+      items.appendChild(row);
+    });
+
+    header.addEventListener("click",()=>{
+      items.style.display =
+        items.style.display==="block" ? "none" : "block";
+    });
+
+    box.appendChild(header);
+    box.appendChild(items);
+    list.appendChild(box);
+  });
+}
+
+function resetAll(){
+  if(confirm("Vil du nullstille alle kommunene du har krysset av?")){
+    saved={};
+    localStorage.removeItem("mittNorgeVisited");
+    render(search.value);
+    updateStats();
+  }
+}
+
+search.addEventListener("input",()=>{
+  render(search.value);
+});
+
+render();
+updateStats();
+
+</script>
+
 </body>
 </html>
